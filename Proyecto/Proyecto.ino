@@ -1,3 +1,10 @@
+//-----Sensor de efecto hall------
+double periodo = 60000; //Periodo de un minuto
+int contador = 0;
+unsigned long tiempoAhora = 0;
+int valorFijado = 0;
+//-------------------------------
+
 //----sensor ultrasonico-------
 const int trigPin = 9;  //triger del sensor ultrasonico
 const int echoPin = 10; //echo del sensor ultrasonico
@@ -21,7 +28,7 @@ bool estado=false;
 unsigned long tiempo=0;
 
 void setup() {
-  
+  pinMode(6,INPUT);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pinMode(ledverde, OUTPUT);
@@ -34,6 +41,7 @@ void setup() {
 
 void loop() {
 
+   controles();
    Distancia();
    
 }
@@ -52,25 +60,6 @@ if (distancia>=5 && distancia <=7){
   digitalWrite(ledverde, HIGH);
   digitalWrite(ledamarillo, LOW);
   digitalWrite(ledrojo, LOW);
-
-  if (Serial.available() > 0) {
-
-    input = Serial.read();
-
-    switch(input){
-      case '1':
-          digitalWrite(activar,!estado);
-      break;
-
-      case '0':
-          digitalWrite(activar,estado);
-      break;
-
-      default:
-          digitalWrite(activar,estado);
-      break;
-    }
-  }
 }
 if (distancia>=11 && distancia <=15){
   digitalWrite(activar, estado);
@@ -84,4 +73,26 @@ if (distancia>=15 && distancia <=150){
   digitalWrite(ledamarillo, LOW);
   digitalWrite(ledrojo, HIGH);
 }
+}
+
+void controles(){
+    if (Serial.available() > 0) {
+
+    input = Serial.read();
+
+    switch(input){
+      case '1':
+          digitalWrite(activar,!estado);
+          
+      break;
+
+      case '0':
+          digitalWrite(activar,estado);
+      break;
+
+      default:
+          digitalWrite(activar,estado);
+      break;
+    }
+  }
 }
