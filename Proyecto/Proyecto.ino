@@ -1,3 +1,7 @@
+//Pines para comunicacion Wifi
+#include <SoftwareSerial.h>
+SoftwareSerial BT1(13, 12); // RX | TX
+//--------------------------------------
 //-----Sensor de efecto hall------
 double periodo = 60000; //Periodo de un minuto
 int contador = 0;
@@ -29,6 +33,7 @@ bool estado=false;
 unsigned long tiempo=0;
 
 void setup() {
+  BT1.begin(9600);
   pinMode(6,INPUT);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
@@ -37,6 +42,17 @@ void setup() {
   pinMode(ledrojo, OUTPUT);
   pinMode(activar, OUTPUT); 
   Serial.begin(9600);
+
+  //Configuracion de parametros para conectarse a la red
+
+  BT1.println("AT+CWMODE=3");
+  delay(1000);
+  BT1.println("AT+CWJAP=\"Villeda\",\"FamVilleda2020\"");
+  delay(10000);
+  BT1.println("AT+CIPMUX=1");
+  delay(1000);
+  BT1.println("AT+CIPSERVER=1,80");
+  delay(1000);
 
 }
 
@@ -64,13 +80,12 @@ if (distancia>=5 && distancia <=7){
   digitalWrite(ledrojo, LOW);
 }
 if (distancia>=11 && distancia <=15){
-  digitalWrite(activar, estado);
   digitalWrite(ledverde, LOW);
   digitalWrite(ledrojo, LOW);
   digitalWrite(ledamarillo, HIGH);
 }
 if (distancia>=15 && distancia <=150){
-  digitalWrite(activar, estado);
+  
   digitalWrite(ledverde, LOW);
   digitalWrite(ledamarillo, LOW);
   digitalWrite(ledrojo, HIGH);
@@ -78,25 +93,41 @@ if (distancia>=15 && distancia <=150){
 }
 
 void Controles(){
-    if (Serial.available() >= 0) {
 
-    input = Serial.read();
+  if (BT1.available()){
+      delay(1000);
+      if(BT1.find("+IPD,")){
+        int conexion = BT1.read()-48;
+        if(BT1.find("motor=")){
+          int lectura = BT1.read()-48;
 
-    switch(input){
-      case '1':
-          digitalWrite(activar,!estado);
-          
-      break;
+          String pagina = "<!doctype html><html><head></head><body>";
 
-      case '0':
-          digitalWrite(activar,estado);
-      break;
+          if(lectura == 1){
+            digitalWrite(activar,!estado);
+            pagina += "<h1>Motores = encendidos</h1></body></html>";
+          }
+          else if (lectura == 0){
+            digitalWrite(activar,estado);
+            pagina += "<h1>Motores = apagado</h1></body></html>";
+          }
 
-      default:
-          digitalWrite(activar,estado);
-      break;
-    }
-  }
+          String enviar = "AT+CIPSEND=";
+          enviar+=conexion;
+          enviar+=",";
+          enviar+=pagina.length();
+          BT1.println(enviar);
+          delay(1000);
+          BT1.println(pagina);
+          delay(1000);
+
+          String cerrar = "AT+CIPCLOSE=";
+          cerrar+=conexion;
+          BT1.println(cerrar);
+          delay(2000);
+        }
+      }
+   }
 }
 
 void Medidor_RPM(){
@@ -116,6 +147,7 @@ void Medidor_RPM(){
       contador++;
   }
    rpm = contador;
+   
    Serial.println(rpm);
  
 }
