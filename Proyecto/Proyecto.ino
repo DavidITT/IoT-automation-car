@@ -129,25 +129,3 @@ void Controles(){
       }
    }
 }
-
-void Medidor_RPM(){
-  //Cada un minuto imprime lo que este aca
-  
-    if(millis() > (periodo + tiempoAhora)){
-    valorFijado = contador; //Valor fijado se vuelve contador para dejar fijado por un minuto lo que estaba.
-    tiempoAhora = millis();
-    contador=0; //Reiniciamos contador
-  }
-
-  //Detecto iman lo cual es igual a una vuelta
-  if(digitalRead(6) == 0){
-      //Espero 300 milisegundos para que no se acumulen muchas vueltas.
-      delay(300);
-      //Aumento el contador de vueltas en uno
-      contador++;
-  }
-   rpm = contador;
-   
-   Serial.println(rpm);
- 
-}
